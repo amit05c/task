@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -15,8 +15,40 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
+import axios from 'axios'
 
+let initialvalue = {
+  username: '',
+  email: '',
+  password: '',
+  confirmpass: '',
+}
 const Login = () => {
+  const [data, setData] = useState(initialvalue)
+  const navigate = useNavigate()
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setData({
+      ...data,
+      [name]: value,
+    })
+  }
+
+  const handleLogin = async () => {
+    if (data.username == '' || data.password == '') {
+      alert('Enter all the fieds')
+    } else {
+      await axios.post('http://localhost:8080/user/login', { ...data }).then((res) => {
+        if (res.data.message == 'Login success') {
+          // console.log(res.data)
+          localStorage.setItem('userInfo', JSON.stringify(res.data.data))
+          navigate('/dashboard')
+        }
+      })
+    }
+  }
+
   return (
     <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
@@ -32,7 +64,12 @@ const Login = () => {
                       <CInputGroupText>
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
-                      <CFormInput placeholder="Username" autoComplete="username" />
+                      <CFormInput
+                        placeholder="Username"
+                        autoComplete="username"
+                        onChange={handleChange}
+                        name="username"
+                      />
                     </CInputGroup>
                     <CInputGroup className="mb-4">
                       <CInputGroupText>
@@ -42,11 +79,13 @@ const Login = () => {
                         type="password"
                         placeholder="Password"
                         autoComplete="current-password"
+                        name="password"
+                        onChange={handleChange}
                       />
                     </CInputGroup>
                     <CRow>
                       <CCol xs={6}>
-                        <CButton color="primary" className="px-4">
+                        <CButton color="primary" className="px-4" onClick={handleLogin}>
                           Login
                         </CButton>
                       </CCol>
